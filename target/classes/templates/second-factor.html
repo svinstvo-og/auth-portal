@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Verify Your Identity</title>
+</head>
+<body>
+<h1>Two-Factor Verification</h1>
+<p>Choose a verification method:</p>
+
+<div th:if="${error}" style="color:red" th:text="${error}"></div>
+
+<!-- TOTP option -->
+<section>
+    <h2>Authenticator App (TOTP)</h2>
+    <form method="post" th:action="@{/second-factor/totp}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <label>6-digit code:<br/>
+            <input type="text" name="code" maxlength="6" pattern="[0-9]{6}"
+                   inputmode="numeric" autocomplete="one-time-code" required/>
+        </label>
+        <button type="submit">Verify Code</button>
+    </form>
+</section>
+
+<hr/>
+
+<!-- WebAuthn option -->
+<section>
+    <h2>Passkey / Security Key</h2>
+    <button id="webauthn-btn" onclick="startWebAuthn()">Use Passkey</button>
+    <div id="webauthn-error" style="color:red"></div>
+</section>
+
+<script th:inline="javascript">
+    async function startWebAuthn() {
+        try {
+            const startResp = await fetch('/webauthn/authenticate/start', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const options = await startResp.json();
+
+            // Convert challenge and allowCredentials from Base64url
+            options.challenge = base64urlDecode(options.challenge);
+            if (options.allowCredentials) {
+                options.allowCredentials = options.allowCredentials.map(c => ({
+                    ...c,
+                    id: base64urlDecode(c.id)
+                }));
+            }
+
+            const credential = await navigator.credentials.get({ publicKey: options });
+
+            const finishResp = await fetch('/webauthn/authenticate/finish', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    id: credential.id,
+                    rawId: base64urlEncode(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        clientDataJSON: base64urlEncode(credential.response.clientDataJSON),
+                        authenticatorData: base64urlEncode(credential.response.authenticatorData),
+                        signature: base64urlEncode(credential.response.signature),
+                        userHandle: credential.response.userHandle
+                            ? base64urlEncode(credential.response.userHandle) : null
+                    }
+                })
+            });
+
+            if (finishResp.ok) {
+                window.location.href = '/dashboard';
+            } else {
+                document.getElementById('webauthn-error').textContent =
+                    'Passkey verification failed. Please try again.';
+            }
+        } catch (e) {
+            document.getElementById('webauthn-error').textContent = 'Error: ' + e.message;
+        }
+    }
+
+    function base64urlDecode(str) {
+        const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes.buffer;
+    }
+
+    function base64urlEncode(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        bytes.forEach(b => binary += String.fromCharCode(b));
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+</script>
+</body>
+</html>
