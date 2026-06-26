@@ -3,27 +3,26 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Register</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
 </head>
 <body>
-<h1>Create Account</h1>
+<div class="card">
+    <h1>Create Account</h1>
 
-<div th:if="${error}" style="color:red" th:text="${error}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
-<form method="post" th:action="@{/register}">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <p>
-        <label>Username<br/>
+    <form method="post" th:action="@{/register}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <label>Username
             <input type="text" name="username" required autofocus/>
         </label>
-    </p>
-    <p>
-        <label>Password<br/>
+        <label>Password
             <input type="password" name="password" required/>
         </label>
-    </p>
-    <button type="submit">Register</button>
-</form>
+        <button type="submit">Register</button>
+    </form>
 
-<p><a th:href="@{/login}">Already have an account? Log in</a></p>
+    <p><a th:href="@{/login}">Already have an account? Log in</a></p>
+</div>
 </body>
 </html>

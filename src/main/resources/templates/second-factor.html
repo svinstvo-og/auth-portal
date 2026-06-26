@@ -3,34 +3,35 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Verify Your Identity</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
 </head>
 <body>
-<h1>Two-Factor Verification</h1>
-<p>Choose a verification method:</p>
+<div class="card">
+    <h1>Two-Factor Verification</h1>
+    <p>Choose a verification method:</p>
 
-<div th:if="${error}" style="color:red" th:text="${error}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
-<!-- TOTP option -->
-<section>
-    <h2>Authenticator App (TOTP)</h2>
-    <form method="post" th:action="@{/second-factor/totp}">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-        <label>6-digit code:<br/>
-            <input type="text" name="code" maxlength="6" pattern="[0-9]{6}"
-                   inputmode="numeric" autocomplete="one-time-code" required/>
-        </label>
-        <button type="submit">Verify Code</button>
-    </form>
-</section>
+    <section>
+        <h2>Authenticator App (TOTP)</h2>
+        <form method="post" th:action="@{/second-factor/totp}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <label>6-digit code
+                <input type="text" name="code" maxlength="6" pattern="[0-9]{6}"
+                       inputmode="numeric" autocomplete="one-time-code" required/>
+            </label>
+            <button type="submit">Verify Code</button>
+        </form>
+    </section>
 
-<hr/>
+    <hr/>
 
-<!-- WebAuthn option -->
-<section>
-    <h2>Passkey / Security Key</h2>
-    <button id="webauthn-btn" onclick="startWebAuthn()">Use Passkey</button>
-    <div id="webauthn-error" style="color:red"></div>
-</section>
+    <section>
+        <h2>Passkey / Security Key</h2>
+        <button id="webauthn-btn" onclick="startWebAuthn()">Use Passkey</button>
+        <div id="webauthn-error" class="alert alert-error" style="margin-top:0.75rem"></div>
+    </section>
+</div>
 
 <script th:inline="javascript">
     async function startWebAuthn() {
@@ -41,7 +42,6 @@
             });
             const options = await startResp.json();
 
-            // Convert challenge and allowCredentials from Base64url
             options.challenge = base64urlDecode(options.challenge);
             if (options.allowCredentials) {
                 options.allowCredentials = options.allowCredentials.map(c => ({

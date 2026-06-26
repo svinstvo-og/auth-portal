@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
 </head>
 <body>
-<h1>Welcome, <span th:text="${username}">user</span>!</h1>
-<p>You are fully authenticated.</p>
+<div class="card wide">
+    <h1>Welcome, <span th:text="${username}">user</span>!</h1>
+    <p>You are fully authenticated.</p>
 
-<h2>Register a Passkey</h2>
-<button onclick="registerPasskey()">Add Passkey</button>
-<div id="passkey-msg"></div>
+    <h2>Register a Passkey</h2>
+    <button onclick="registerPasskey()">Add Passkey</button>
+    <div id="passkey-msg" class="alert alert-info" style="margin-top:0.75rem"></div>
 
-<p><a th:href="@{/logout}">Sign out</a></p>
+    <p><a th:href="@{/logout}">Sign out</a></p>
+</div>
 
 <script>
     async function registerPasskey() {

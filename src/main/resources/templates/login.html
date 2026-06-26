@@ -3,29 +3,28 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Login</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
 </head>
 <body>
-<h1>Sign In</h1>
+<div class="card">
+    <h1>Sign In</h1>
 
-<div th:if="${param.error}" style="color:red">Invalid username or password.</div>
-<div th:if="${param.logout}" style="color:green">You have been logged out.</div>
-<div th:if="${param.registered}" style="color:green">Registration complete — please log in.</div>
+    <div th:if="${param.error}" class="alert alert-error">Invalid username or password.</div>
+    <div th:if="${param.logout}" class="alert alert-success">You have been logged out.</div>
+    <div th:if="${param.registered}" class="alert alert-success">Registration complete — please log in.</div>
 
-<form method="post" th:action="@{/login}">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <p>
-        <label>Username<br/>
+    <form method="post" th:action="@{/login}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <label>Username
             <input type="text" name="username" required autofocus/>
         </label>
-    </p>
-    <p>
-        <label>Password<br/>
+        <label>Password
             <input type="password" name="password" required/>
         </label>
-    </p>
-    <button type="submit">Sign In</button>
-</form>
+        <button type="submit">Sign In</button>
+    </form>
 
-<p><a th:href="@{/register}">No account? Register</a></p>
+    <p><a th:href="@{/register}">No account? Register</a></p>
+</div>
 </body>
 </html>

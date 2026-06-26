@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Set Up Authenticator</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
 </head>
 <body>
-<h1>Set Up Two-Factor Authentication</h1>
+<div class="card">
+    <h1>Set Up Two-Factor Authentication</h1>
 
-<p>Scan this QR code with Google Authenticator or Microsoft Authenticator:</p>
-<img th:src="@{/register/totp-setup/qr}" alt="TOTP QR Code" width="250" height="250"/>
+    <p>Scan this QR code with Google Authenticator or Microsoft Authenticator:</p>
+    <img th:src="@{/register/totp-setup/qr}" alt="TOTP QR Code" width="200" height="200"/>
 
-<p>Or enter this secret manually: <code th:text="${secret}"></code></p>
+    <p>Or enter this secret manually: <code th:text="${secret}"></code></p>
 
-<div th:if="${error}" style="color:red" th:text="${error}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
-<form method="post" th:action="@{/register/totp-setup}">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <p>
-        <label>Enter the 6-digit code from your app to confirm setup:<br/>
+    <form method="post" th:action="@{/register/totp-setup}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <label>Enter the 6-digit code from your app to confirm setup
             <input type="text" name="code" maxlength="6" pattern="[0-9]{6}"
                    inputmode="numeric" autocomplete="one-time-code" required autofocus/>
         </label>
-    </p>
-    <button type="submit">Verify and Complete Setup</button>
-</form>
+        <button type="submit">Verify and Complete Setup</button>
+    </form>
+</div>
 </body>
 </html>
