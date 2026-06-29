@@ -1,5 +1,6 @@
 package com.svinstvo.og.portal.domain;
 
+import com.svinstvo.og.portal.crypto.TotpSecretConverter;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -15,7 +16,8 @@ public class TotpCredential {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 64)
+    @Convert(converter = TotpSecretConverter.class)
+    @Column(nullable = false, length = 128)
     private String secret;
 
     @Column(name = "created_at", nullable = false, updatable = false)
