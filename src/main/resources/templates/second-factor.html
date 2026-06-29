@@ -40,7 +40,8 @@
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'}
             });
-            const options = await startResp.json();
+            const optionsWrapper = await startResp.json();
+            const options = optionsWrapper.publicKey;
 
             options.challenge = base64urlDecode(options.challenge);
             if (options.allowCredentials) {

@@ -21,7 +21,8 @@
     async function registerPasskey() {
         try {
             const startResp = await fetch('/webauthn/register/start', { method: 'POST' });
-            const options = await startResp.json();
+            const optionsWrapper = await startResp.json();
+            const options = optionsWrapper.publicKey;
 
             options.challenge = base64urlDecode(options.challenge);
             options.user.id   = base64urlDecode(options.user.id);
