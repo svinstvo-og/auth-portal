@@ -10,9 +10,16 @@
     <h1>Welcome, <span th:text="${username}">user</span>!</h1>
     <p>You are fully authenticated.</p>
 
-    <h2>Register a Passkey</h2>
-    <button onclick="registerPasskey()">Add Passkey</button>
-    <div id="passkey-msg" class="alert alert-info" style="margin-top:0.75rem"></div>
+    <div th:if="${!hasPasskey}">
+        <h2>Register a Passkey</h2>
+        <button onclick="registerPasskey()">Add Passkey</button>
+        <div id="passkey-msg" class="alert alert-info" style="margin-top:0.75rem"></div>
+    </div>
+    <div th:if="${hasPasskey}">
+        <p>Passkey registered.</p>
+        <button onclick="registerPasskey()">Add another passkey</button>
+        <div id="passkey-msg" class="alert alert-info" style="margin-top:0.75rem"></div>
+    </div>
 
     <form th:action="@{/logout}" method="post" style="display:inline">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -29,6 +36,11 @@
 
             options.challenge = base64urlDecode(options.challenge);
             options.user.id   = base64urlDecode(options.user.id);
+            if (options.excludeCredentials) {
+                options.excludeCredentials = options.excludeCredentials.map(c => ({
+                    ...c, id: base64urlDecode(c.id)
+                }));
+            }
 
             const credential = await navigator.credentials.create({ publicKey: options });
 
