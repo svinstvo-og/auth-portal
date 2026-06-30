@@ -37,7 +37,16 @@ public class SecondFactorController {
                               Model model) {
         String username = authentication.getName();
 
-        if (!totpVerifier.verify(username, code)) {
+        boolean verified;
+        try {
+            verified = totpVerifier.verify(username, code);
+        } catch (IllegalStateException e) {
+            log.error("TOTP verification error for username={}: {}", username, e.getMessage());
+            model.addAttribute("error", "TOTP is not configured for this account — please contact support");
+            return "second-factor";
+        }
+
+        if (!verified) {
             log.warn("TOTP second factor failed for username={}", username);
             model.addAttribute("error", "Invalid code — please try again");
             return "second-factor";
