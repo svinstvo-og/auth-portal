@@ -55,6 +55,11 @@ public class WebAuthnService {
         return relyingParty.startRegistration(
                 StartRegistrationOptions.builder()
                         .user(userIdentity)
+                        .authenticatorSelection(AuthenticatorSelectionCriteria.builder()
+                                .authenticatorAttachment(AuthenticatorAttachment.PLATFORM)
+                                .residentKey(ResidentKeyRequirement.PREFERRED)
+                                .userVerification(UserVerificationRequirement.REQUIRED)
+                                .build())
                         .build());
     }
 
