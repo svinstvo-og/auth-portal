@@ -28,7 +28,8 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/register/**", "/login", "/css/**", "/js/**").permitAll()
-                .requestMatchers("/second-factor/**", "/webauthn/**").hasRole("PRE_AUTH")
+                .requestMatchers("/second-factor/**", "/webauthn/authenticate/**").hasRole("PRE_AUTH")
+                .requestMatchers("/webauthn/register/**").hasAnyRole("PRE_AUTH", "USER")
                 .anyRequest().hasRole("USER")
             )
             .formLogin(form -> form
