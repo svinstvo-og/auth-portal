@@ -60,6 +60,7 @@
                     id: credential.id,
                     rawId: base64urlEncode(credential.rawId),
                     type: credential.type,
+                    clientExtensionResults: credential.getClientExtensionResults(),
                     response: {
                         clientDataJSON: base64urlEncode(credential.response.clientDataJSON),
                         authenticatorData: base64urlEncode(credential.response.authenticatorData),
