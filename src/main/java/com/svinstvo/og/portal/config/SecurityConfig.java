@@ -1,5 +1,7 @@
 package com.svinstvo.og.portal.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +15,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -56,13 +60,16 @@ public class SecurityConfig {
      * The full ROLE_USER is only granted after TOTP or WebAuthn verification.
      */
     private AccessDeniedHandler preAuthAccessDeniedHandler() {
-        return (request, response, ex) -> response.sendRedirect("/second-factor");
+        return (request, response, ex) -> {
+            String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "anonymous";
+            log.warn("Access denied for username={}, redirecting to second-factor", username);
+            response.sendRedirect("/second-factor");
+        };
     }
 
     private AuthenticationSuccessHandler preAuthSuccessHandler() {
         return (request, response, authentication) -> {
-            // Spring Security already stored the Authentication with ROLE_PRE_AUTH
-            // (set by UserDetailsService returning roles("PRE_AUTH")).
+            log.info("Form login succeeded for username={}", authentication.getName());
             response.sendRedirect("/second-factor");
         };
     }

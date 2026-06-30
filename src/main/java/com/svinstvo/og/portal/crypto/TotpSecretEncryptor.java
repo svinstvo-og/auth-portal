@@ -1,6 +1,8 @@
 package com.svinstvo.og.portal.crypto;
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -11,6 +13,8 @@ import java.util.Base64;
 
 @Component
 public class TotpSecretEncryptor {
+
+    private static final Logger log = LoggerFactory.getLogger(TotpSecretEncryptor.class);
 
     private static final String ALG = "AES/GCM/NoPadding";
     private static final int IV_LEN = 12;
@@ -41,6 +45,7 @@ public class TotpSecretEncryptor {
             System.arraycopy(ciphertext, 0, out, IV_LEN, ciphertext.length);
             return Base64.getEncoder().encodeToString(out);
         } catch (Exception e) {
+            log.error("TOTP secret encryption failed", e);
             throw new IllegalStateException("Encryption failed", e);
         }
     }
@@ -56,6 +61,7 @@ public class TotpSecretEncryptor {
             cipher.init(Cipher.DECRYPT_MODE, keySpec, new GCMParameterSpec(TAG_LEN, iv));
             return new String(cipher.doFinal(ciphertext));
         } catch (Exception e) {
+            log.error("TOTP secret decryption failed", e);
             throw new IllegalStateException("Decryption failed", e);
         }
     }

@@ -9,6 +9,8 @@ import com.yubico.webauthn.*;
 import com.yubico.webauthn.data.*;
 import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,8 @@ import java.nio.ByteBuffer;
 
 @Service
 public class WebAuthnService {
+
+    private static final Logger log = LoggerFactory.getLogger(WebAuthnService.class);
 
     private final RelyingParty relyingParty;
     private final WebAuthnCredentialRepository credentialRepository;

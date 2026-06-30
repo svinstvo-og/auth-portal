@@ -5,6 +5,8 @@ import com.svinstvo.og.portal.service.UserService;
 import com.svinstvo.og.totp.TotpRegistrationService;
 import com.svinstvo.og.totp.TotpVerifier;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/register")
 public class RegistrationController {
+
+    private static final Logger log = LoggerFactory.getLogger(RegistrationController.class);
 
     public static final String SESSION_TOTP_USERNAME = "totp_reg_username";
     public static final String SESSION_TOTP_SECRET   = "totp_reg_secret";
@@ -43,13 +47,16 @@ public class RegistrationController {
                                    @RequestParam String password,
                                    HttpSession session,
                                    Model model) {
+        log.info("Registration attempt for username={}", username);
         try {
             userService.register(username, password);
         } catch (IllegalArgumentException e) {
+            log.warn("Registration failed, username already taken: {}", username);
             model.addAttribute("error", e.getMessage());
             return "register";
         }
 
+        log.info("User created, starting TOTP enrollment for username={}", username);
         // Generate TOTP secret and store in session for the enrollment step
         String secret = totpRegistrationService.generateSecret();
         session.setAttribute(SESSION_TOTP_USERNAME, username);
@@ -96,6 +103,7 @@ public class RegistrationController {
 
         // Temporarily wire the session secret for verification
         if (!verifyWithSecret(secret, code)) {
+            log.warn("TOTP enrollment verification failed for username={}", username);
             model.addAttribute("error", "Invalid code — please try again");
             String uri = totpRegistrationService.buildOtpAuthUri("AuthPortal", username, secret);
             model.addAttribute("secret", secret);
@@ -106,6 +114,7 @@ public class RegistrationController {
         totpCredentialService.saveSecret(username, secret);
         session.removeAttribute(SESSION_TOTP_USERNAME);
         session.removeAttribute(SESSION_TOTP_SECRET);
+        log.info("Registration complete, TOTP enrolled for username={}", username);
 
         return "redirect:/login?registered";
     }

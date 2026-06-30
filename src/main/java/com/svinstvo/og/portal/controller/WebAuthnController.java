@@ -11,6 +11,8 @@ import com.yubico.webauthn.exception.RegistrationFailedException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/webauthn")
 public class WebAuthnController {
+
+    private static final Logger log = LoggerFactory.getLogger(WebAuthnController.class);
 
     private final WebAuthnService webAuthnService;
     private final WebAuthnChallengeStore challengeStore;
@@ -42,6 +46,7 @@ public class WebAuthnController {
     @PostMapping("/register/start")
     public ResponseEntity<String> registrationStart(Authentication auth,
                                                      HttpSession session) throws IOException {
+        log.info("WebAuthn registration start for username={}", auth.getName());
         var options = webAuthnService.startRegistration(auth.getName());
         challengeStore.storeRegistration(session, options);
         return ResponseEntity.ok(options.toCredentialsCreateJson());
@@ -55,6 +60,7 @@ public class WebAuthnController {
 
         var options = challengeStore.getRegistration(session);
         if (options == null) {
+            log.warn("WebAuthn registration finish — no pending ceremony for username={}", auth.getName());
             return ResponseEntity.badRequest().body(Map.of("error", "No pending registration"));
         }
 
@@ -62,8 +68,10 @@ public class WebAuthnController {
             var pkc = PublicKeyCredential.parseRegistrationResponseJson(body);
             webAuthnService.finishRegistration(auth.getName(), options, pkc);
             challengeStore.removeRegistration(session);
+            log.info("WebAuthn registration complete for username={}", auth.getName());
             return ResponseEntity.ok(Map.of("status", "registered"));
         } catch (IOException | RegistrationFailedException e) {
+            log.error("WebAuthn registration failed for username={}: {}", auth.getName(), e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -73,6 +81,7 @@ public class WebAuthnController {
     @PostMapping("/authenticate/start")
     public ResponseEntity<String> assertionStart(Authentication auth,
                                                   HttpSession session) throws IOException {
+        log.info("WebAuthn assertion start for username={}", auth.getName());
         AssertionRequest request = webAuthnService.startAssertion(auth.getName());
         challengeStore.storeAssertion(session, request);
         return ResponseEntity.ok(request.toCredentialsGetJson());
@@ -88,6 +97,7 @@ public class WebAuthnController {
 
         AssertionRequest request = challengeStore.getAssertion(session);
         if (request == null) {
+            log.warn("WebAuthn assertion finish — no pending ceremony for username={}", auth.getName());
             return ResponseEntity.badRequest().body(Map.of("error", "No pending assertion"));
         }
 
@@ -96,8 +106,10 @@ public class WebAuthnController {
             webAuthnService.finishAssertion(request, pkc);
             challengeStore.removeAssertion(session);
             secondFactorService.upgradeToFullAuth(auth.getName(), httpRequest, httpResponse);
+            log.info("WebAuthn assertion complete for username={}", auth.getName());
             return ResponseEntity.ok(Map.of("status", "authenticated"));
         } catch (IOException | AssertionFailedException e) {
+            log.error("WebAuthn assertion failed for username={}: {}", auth.getName(), e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }

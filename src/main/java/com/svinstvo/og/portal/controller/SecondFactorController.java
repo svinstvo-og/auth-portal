@@ -4,6 +4,8 @@ import com.svinstvo.og.portal.service.SecondFactorService;
 import com.svinstvo.og.totp.TotpVerifier;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/second-factor")
 public class SecondFactorController {
+
+    private static final Logger log = LoggerFactory.getLogger(SecondFactorController.class);
 
     private final TotpVerifier totpVerifier;
     private final SecondFactorService secondFactorService;
@@ -34,10 +38,12 @@ public class SecondFactorController {
         String username = authentication.getName();
 
         if (!totpVerifier.verify(username, code)) {
+            log.warn("TOTP second factor failed for username={}", username);
             model.addAttribute("error", "Invalid code — please try again");
             return "second-factor";
         }
 
+        log.info("TOTP second factor passed for username={}", username);
         secondFactorService.upgradeToFullAuth(username, request, response);
         return "redirect:/dashboard";
     }

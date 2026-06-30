@@ -19,3 +19,7 @@ app:
     rp-id: localhost
     rp-name: Auth Portal
     origin: http://localhost:8080
+
+logging:
+  level:
+    com.svinstvo.og.portal: INFO
